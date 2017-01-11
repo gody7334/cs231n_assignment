@@ -70,13 +70,15 @@ def svm_loss_naive(W, X, y, reg):
     for i in xrange(num_train):
         scores = X[i].dot(W)
         correct_class_score = scores[y[i]]
-        scores_diff = scores - correct_class_score + 1
         
         # get the differernt between correct class score and wrong class score
-        diff = np.where(scores_diff > 0, 1, 0)
+        diff = np.where(scores - correct_class_score + 1 > 0, 1, 0)
         
-        # sum(diff) - 1, remove correct class model itself as 0+1 always > 0
-        diff[y[i]] = (np.sum(diff)-1) * (-1)
+        # remove correct class model itself (0+1)
+        diff[y[i]] = 0
+        
+        # calculate right class model's gradient
+        diff[y[i]] = (np.sum(diff)) * (-1)
         
         X_temp = X[i][:,np.newaxis]
         dW += (diff * X_temp)
@@ -122,10 +124,16 @@ def svm_loss_vectorized(W, X, y, reg):
     score_diff = scores - correct_class_score[:,np.newaxis]+1
     
     # filter > 0 but keep dimension
-    score_diff_filter = np.where(score_diff>0, score_diff, 0)
+    # score_diff_filter = np.where(score_diff>0, score_diff, 0)
     
-    # sum all unhappiness subtract num_train which is created by the above +1
-    loss = np.sum(score_diff_filter) - num_train
+    # or use maximum which is a element wise operation function, it matches the equation better
+    score_diff_filter = np.maximum(score_diff, 0)
+    
+    # remove correct class model itself (0+1)
+    score_diff_filter[train_index,y] = 0
+    
+    # alculate right class model's loss
+    loss = np.sum(score_diff_filter)
     
     # scale and regularize
     loss /= num_train
@@ -144,7 +152,25 @@ def svm_loss_vectorized(W, X, y, reg):
     # to reuse some of the intermediate values that you used to compute the     #
     # loss.                                                                     #
     #############################################################################
-    pass
+    
+    # wrong class gradient
+    score_diff_filter = np.where(score_diff > 0, 1, 0)
+    # remove right class result
+    score_diff_filter[train_index,y] = 0
+    # calculate right class gradient
+    score_diff_filter[train_index,y] = np.sum(score_diff_filter, axis=1)*-1
+    
+    # sum the gradient across dataset
+    # 3 dim broadcasting seems to be slow as it create high dim intermediate tensor
+    # dW = np.sum(X[:,:,np.newaxis] * score_diff_filter[:,np.newaxis,:], axis = 0) 
+    
+    # inner dot is fast
+    dW = X.T.dot(score_diff_filter)
+
+    # scale and regularization
+    dW /= num_train
+    dW += 2 * 0.5 * reg * W 
+    
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
