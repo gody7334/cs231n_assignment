@@ -94,37 +94,59 @@ def svm_loss_naive(W, X, y, reg):
 
 
 def svm_loss_vectorized(W, X, y, reg):
-  """
-  Structured SVM loss function, vectorized implementation.
+    """
+    Structured SVM loss function, vectorized implementation.
 
-  Inputs and outputs are the same as svm_loss_naive.
-  """
-  loss = 0.0
-  dW = np.zeros(W.shape) # initialize the gradient as zero
+    Inputs and outputs are the same as svm_loss_naive.
+    """
+    loss = 0.0
+    dW = np.zeros(W.shape) # initialize the gradient as zero
 
-  #############################################################################
-  # TODO:                                                                     #
-  # Implement a vectorized version of the structured SVM loss, storing the    #
-  # result in loss.                                                           #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
+    #############################################################################
+    # TODO:                                                                     #
+    # Implement a vectorized version of the structured SVM loss, storing the    #
+    # result in loss.                                                           #
+    #############################################################################
+    num_train = X.shape[0]
+    
+    # compute scores
+    scores = X.dot(W)
+    
+    # create 1 dim index 1...n
+    train_index = np.arange(num_train)
+    
+    # select correct class scores in 2d array
+    correct_class_score = scores[train_index, y]
+    
+    # compute unhappiness for each model
+    score_diff = scores - correct_class_score[:,np.newaxis]+1
+    
+    # filter > 0 but keep dimension
+    score_diff_filter = np.where(score_diff>0, score_diff, 0)
+    
+    # sum all unhappiness subtract num_train which is created by the above +1
+    loss = np.sum(score_diff_filter) - num_train
+    
+    # scale and regularize
+    loss /= num_train
+    loss += 0.5 * reg * np.sum(W * W)
+    
+    #############################################################################
+    #                             END OF YOUR CODE                              #
+    #############################################################################
 
+    #############################################################################
+    # TODO:                                                                     #
+    # Implement a vectorized version of the gradient for the structured SVM     #
+    # loss, storing the result in dW.                                           #
+    #                                                                           #
+    # Hint: Instead of computing the gradient from scratch, it may be easier    #
+    # to reuse some of the intermediate values that you used to compute the     #
+    # loss.                                                                     #
+    #############################################################################
+    pass
+    #############################################################################
+    #                             END OF YOUR CODE                              #
+    #############################################################################
 
-  #############################################################################
-  # TODO:                                                                     #
-  # Implement a vectorized version of the gradient for the structured SVM     #
-  # loss, storing the result in dW.                                           #
-  #                                                                           #
-  # Hint: Instead of computing the gradient from scratch, it may be easier    #
-  # to reuse some of the intermediate values that you used to compute the     #
-  # loss.                                                                     #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
-
-  return loss, dW
+    return loss, dW
