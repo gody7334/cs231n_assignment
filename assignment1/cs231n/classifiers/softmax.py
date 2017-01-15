@@ -48,10 +48,10 @@ def softmax_loss_naive(W, X, y, reg):
         class_indicat[y[i]] = 1
         loss += -1* np.sum(class_indicat * np.log(log_prob))
         
-        # log_prob derive by score func
+        # d(loss)/d(Wx)
         log_prob[y[i]] -= 1
         
-        # derive by x using chain rule
+        # chain rule: d(loss)/d(W) = d(loss)/d(Wx) * d(Wx)/d(W) = d(loss)/d(Wx) * (x)
         dW += X[i][:,np.newaxis]*log_prob
     
     loss /= num_train
