@@ -188,18 +188,17 @@ class FullyConnectedNet(object):
     p_dims = input_dim
     idx = 1
     for h_dim in hidden_dims:
+        self.params['gamma'+str(idx)] = np.ones(p_dims)
+        self.params['beta'+str(idx)] = np.zeros(p_dims)
         self.params['W'+str(idx)] = weight_scale * np.random.randn(p_dims, h_dim)
         self.params['b'+str(idx)] = np.zeros(h_dim)
-        #self.params['gamma'+str(idx)] = np.ones(1)
-        #self.params['beta'+str(idx)] = np.zeros(1)
         idx+=1
         p_dims = h_dim
     
     # softmax params
     self.params['W'+str(idx)] = weight_scale * np.random.randn(p_dims, num_classes)
     self.params['b'+str(idx)] = np.zeros(num_classes)
-    #self.params['gamma'+str(idx)] = np.ones(1)
-    #self.params['beta'+str(idx)] = np.zeros(1)
+    
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
