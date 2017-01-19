@@ -153,6 +153,7 @@ def batchnorm_forward(x, gamma, beta, bn_param):
   eps = bn_param.get('eps', 1e-5)
   momentum = bn_param.get('momentum', 0.9)
 
+  x = np.reshape(x, (x.shape[0], -1))
   N, D = x.shape
   running_mean = bn_param.get('running_mean', np.zeros(D, dtype=x.dtype))
   running_var = bn_param.get('running_var', np.zeros(D, dtype=x.dtype))
