@@ -259,14 +259,20 @@ class FullyConnectedNet(object):
     ############################################################################
     
     caches = {}
+    dp_caches = {}
     out = X
     for idx in range(1, self.num_layers):
         if self.use_batchnorm:
             out, cache = bn_affine_relu_forward(out, self.params['gamma'+str(idx)], self.params['beta'+str(idx)], self.bn_params[idx-1], self.params['W'+str(idx)], self.params['b'+str(idx)])
+            caches['cache'+str(idx)] = cache
         else:
             out, cache = affine_relu_forward(out, self.params['W'+str(idx)], self.params['b'+str(idx)])
-        caches['cache'+str(idx)] = cache
-    
+            caches['cache'+str(idx)] = cache
+        
+        if self.use_dropout:
+            out, dropout_cache = dropout_forward(out, self.dropout_param)
+            dp_caches[idx] = dropout_cache
+
     idx = self.num_layers
     out, cache = affine_forward(out, self.params['W'+str(idx)], self.params['b'+str(idx)])
     caches['cache'+str(idx)] = cache
@@ -306,6 +312,9 @@ class FullyConnectedNet(object):
     grads['b'+idx] = db
     
     for idx in range(self.num_layers-1, 0, -1):
+        if self.use_dropout:
+            dscore = dropout_backward(dscore, dp_caches[idx])
+            
         if self.use_batchnorm:
             dscore, dW, db, dgamma, dbeta= bn_affine_relu_backward(dscore, caches['cache'+str(idx)])
             loss += 0.5*self.reg*np.sum(self.params['W'+str(idx)]**2)
@@ -320,6 +329,7 @@ class FullyConnectedNet(object):
             dW += self.reg*self.params['W'+str(idx)]
             grads['W'+str(idx)] = dW
             grads['b'+str(idx)] = db
+        
     
     ############################################################################
     #                             END OF YOUR CODE                             #
