@@ -30,7 +30,7 @@ def load_CIFAR10(ROOT):
   return Xtr, Ytr, Xte, Yte
 
 
-def get_CIFAR10_data(num_training=4900, num_validation=100, num_test=100):
+def get_CIFAR10_data(num_training=49000, num_validation=1000, num_test=1000):
     """
     Load the CIFAR-10 dataset from disk and perform preprocessing to prepare
     it for classifiers. These are the same steps as we used for the SVM, but
@@ -38,12 +38,12 @@ def get_CIFAR10_data(num_training=4900, num_validation=100, num_test=100):
     """
     # Load the raw CIFAR-10 data
     cifar10_dir = 'cs231n/datasets/cifar-10-batches-py'
-    # X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
+    X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
     
-    X_train = pickle.load(open("/ipython/1.cs231/assignment1/X_train_5000", "rb"))
-    y_train = pickle.load(open("/ipython/1.cs231/assignment1/y_train_5000", "rb"))
-    X_test = pickle.load(open("/ipython/1.cs231/assignment1/X_test_500", "rb"))
-    y_test = pickle.load(open("/ipython/1.cs231/assignment1/y_test_500", "rb"))
+    #X_train = pickle.load(open("/ipython/1.cs231/assignment1/X_train_5000", "rb"))
+    #y_train = pickle.load(open("/ipython/1.cs231/assignment1/y_train_5000", "rb"))
+    #X_test = pickle.load(open("/ipython/1.cs231/assignment1/X_test_500", "rb"))
+    #y_test = pickle.load(open("/ipython/1.cs231/assignment1/y_test_500", "rb"))
         
     # Subsample the data
     mask = range(num_training, num_training + num_validation)
