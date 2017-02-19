@@ -405,8 +405,8 @@ def conv_forward_naive(x, w, b, conv_param):
   stride = conv_param['stride']
   x = np.lib.pad(x, ((0,),(0,),(pad,),(pad,)), 'constant', constant_values=((0,),(0,),(0,),(0,)))
   
-  print x.shape
-  print w.shape
+  print 'x shape' + str(x.shape)
+  print 'w shape' + str(w.shape)
   N,C,H,W = x.shape
   F,C,HH,WW = w.shape
   
@@ -417,7 +417,14 @@ def conv_forward_naive(x, w, b, conv_param):
   for h_idx in range(0, H_out):
     for w_idx in range(0, W_out):
       x_sub = x[:,:,h_idx:h_idx+HH,w_idx:w_idx+WW]
-      print x_sub.shape
+      x_sub = x_sub[:,np.newaxis,:,:,:]
+      cov = x_sub*w
+      # print x_sub.shape
+      # print cov.shape
+      cov = np.reshape(cov, (N,F,-1))
+      print cov.shape
+      cov = np.sum(cov, axis = -1)
+      print cov.shape
 
   
   # decide submatrix center,
