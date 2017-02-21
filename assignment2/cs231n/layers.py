@@ -401,39 +401,37 @@ def conv_forward_naive(x, w, b, conv_param):
   # TODO: Implement the convolutional forward pass.                           #
   # Hint: you can use the function np.pad for padding.                        #
   #############################################################################
-  pad = conv_param['pad']
-  stride = conv_param['stride']
-  x = np.lib.pad(x, ((0,),(0,),(pad,),(pad,)), 'constant', constant_values=((0,),(0,),(0,),(0,)))
-  
+  P = conv_param['pad']
+  S = conv_param['stride']
+  x_pad = np.lib.pad(x, ((0,),(0,),(P,),(P,)), 'constant', constant_values=((0,),(0,),(0,),(0,)))
+
   print 'x shape' + str(x.shape)
+  print 'x_pad shape' + str(x_pad.shape)
   print 'w shape' + str(w.shape)
+
   N,C,H,W = x.shape
   F,C,HH,WW = w.shape
-  
-  H_out = 1 + (H + 2 * pad - HH) / stride
-  W_out = 1 + (W + 2 * pad - WW) / stride
-  print H_out, W_out
-  
-  for h_idx in range(0, H_out):
-    for w_idx in range(0, W_out):
-      x_sub = x[:,:,h_idx:h_idx+HH,w_idx:w_idx+WW]
-      x_sub = x_sub[:,np.newaxis,:,:,:]
-      cov = x_sub*w
-      # print x_sub.shape
-      # print cov.shape
-      cov = np.reshape(cov, (N,F,-1))
-      print cov.shape
-      cov = np.sum(cov, axis = -1)
-      print cov.shape
 
+  # N nubmer of image data
+  # F number of conv filter
+  # C number of channel
+  # H, W hight width of a image
+  # HH, WW hight width of a filter
   
-  # decide submatrix center,
-  # loop with stride
-  # get submatrix
-  # do dot product
+  H_out = 1 + (H + 2 * P - HH) / S
+  W_out = 1 + (W + 2 * P - WW) / S
+
+  # H_out, W_out, F hight width deepth of output, after conv tranformation.
+  print H_out, W_out
+
+  out = np.zeros((N,F,H_out,W_out))
   
-  print x.shape
-  pass
+  for n in range(0, N):  
+      for f in range(0, F):
+          for ho in range(0, H_out):
+              for wo in range(0, W_out):
+                  out[n, f, ho, wo] = np.sum(x_pad[n,:,ho*S:ho*S+HH,wo*S:wo*S+WW]*w[f,:]) + b[f]
+                
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
