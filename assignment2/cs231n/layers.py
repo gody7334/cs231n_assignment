@@ -514,8 +514,16 @@ def max_pool_forward_naive(x, pool_param):
   pH = pool_param['pool_height']
   pW = pool_param['pool_width']
   S = pool_param['stride']
-  
-  pass
+  Hout = ((H-pH)/S) + 1
+  Wout = ((W-pW)/S) + 1
+  out = np.zeros((N,C,Hout,Wout))
+
+  for n in range(0,N): 
+      for c in range(0,C):
+          for ho in range(0,Hout):
+              for wo in range(0,Wout):
+                  out[n,c,ho,wo] = np.max(x[n,c,ho*S:ho*S+pH,wo*S:wo*S+pW])
+                
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -538,7 +546,23 @@ def max_pool_backward_naive(dout, cache):
   #############################################################################
   # TODO: Implement the max pooling backward pass                             #
   #############################################################################
-  pass
+  x, pool_param = cache
+  N,C,H,W = x.shape
+  pH = pool_param['pool_height']
+  pW = pool_param['pool_width']
+  S = pool_param['stride']
+  N,F,Hout,Wout = dout.shape
+
+  dx = np.zeros(x.shape)
+  for n in range(0,N): 
+      for c in range(0,C):
+          for ho in range(0,Hout):
+              for wo in range(0,Wout):
+                  temp = x[n,c,ho*S:ho*S+pH,wo*S:wo*S+pW]
+                  mask = np.zeros(temp.shape)
+                  mask[np.unravel_index(np.argmax(temp),temp.shape)] = 1
+                  dx[n,c,ho*S:ho*S+pH,wo*S:wo*S+pW]+=mask*dout[n,c,ho,wo]
+
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
