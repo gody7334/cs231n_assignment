@@ -22,14 +22,15 @@ class CaptioningRNN(object):
     Construct a new CaptioningRNN instance.
 
     Inputs:
-    - word_to_idx: A dictionary giving the vocabulary. It contains V entries,
+    - V: word_to_idx: A dictionary giving the vocabulary. It contains V entries,
       and maps each string to a unique integer in the range [0, V).
-    - input_dim: Dimension D of input image feature vectors.
-    - wordvec_dim: Dimension W of word vectors.
-    - hidden_dim: Dimension H for the hidden state of the RNN.
+    - D: input_dim: Dimension D of input image feature vectors.
+    - W: wordvec_dim: Dimension W of word vectors.
+    - H: hidden_dim: Dimension H for the hidden state of the RNN.
     - cell_type: What type of RNN to use; either 'rnn' or 'lstm'.
     - dtype: numpy datatype to use; use float32 for training and float64 for
       numeric gradient checking.
+    - T: number of words in a sentence
     """
     if cell_type not in {'rnn', 'lstm'}:
       raise ValueError('Invalid cell_type "%s"' % cell_type)
@@ -135,7 +136,37 @@ class CaptioningRNN(object):
     # defined above to store loss and gradients; grads[k] should give the      #
     # gradients for self.params[k].                                            #
     ############################################################################
-    pass
+    #forward pass
+    # (1)
+    f_proj = np.dot(features,W_proj) + b_proj #(N,H)
+    
+    # (2)
+    captions_in_embedded = W_embed[captions_in] #(N,T,W)
+    
+    # (3)
+    h_out = h_cache = None
+    if(self.cell_type == "rnn"):
+        h_out, h_cache = rnn_forward(captions_in_embedded, f_proj, Wx, Wh, b)
+    
+    # (4)
+    temporal_out, temporal_cache = temporal_affine_forward(h_out,W_vocab,b_vocab)
+    
+    # (5)
+    soft_loss, soft_grads = temporal_softmax_loss(temporal_out,captions_out,mask)
+    
+    #backward pass
+    # (b_4)
+    temporal_dx, self.grads['W_vocab'], self.grads['b_vocab'] = temporal_affine_backward(soft_grads, temporal_cache)
+    
+    # (b_3)
+    rnn_dx, rnn_dh0, self.grads['Wx'], self.grads['Wh'], self.grads['b'] = rnn_backward(temporal_dx, h_cache)
+    
+    # (b_1)
+    
+    
+    
+    loss = soft_loss
+    # grads = soft_grads
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
