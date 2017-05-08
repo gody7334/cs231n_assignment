@@ -1,4 +1,7 @@
 import numpy as np
+import sys
+from pprint import pprint
+
 
 from cs231n.layers import *
 from cs231n.rnn_layers import *
@@ -232,7 +235,28 @@ class CaptioningRNN(object):
     # functions; you'll need to call rnn_step_forward or lstm_step_forward in #
     # a loop.                                                                 #
     ###########################################################################
-    pass
+    # N start words vectors
+    start_vector = W_embed[self._start]
+    word_vectors = np.tile(start_vector, (N,1))
+   
+    # image feature projection
+    f_proj = np.dot(features,W_proj) + b_proj #(N,H)
+    
+    for step in range(max_length):
+        # one set rnn forward
+        next_h, cache = rnn_step_forward(word_vectors, f_proj, Wx, Wh, b)
+        f_proj = next_h
+        
+        # temperal forward
+        pred_word_vectors = np.dot(next_h,W_vocab)+b_vocab
+        
+        # get max indices
+        max_indice = np.argmax(pred_word_vectors, axis=1)
+        # output as the predict words
+        captions[:,step] = max_indice
+        # next step input as output
+        word_vectors = W_embed[max_indice]
+
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
