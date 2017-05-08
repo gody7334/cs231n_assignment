@@ -141,7 +141,7 @@ class CaptioningRNN(object):
     f_proj = np.dot(features,W_proj) + b_proj #(N,H)
     
     # (2)
-    captions_in_embedded = W_embed[captions_in] #(N,T,W)
+    captions_in_embedded, captions_in_cache = word_embedding_forward(captions_in, W_embed)
     
     # (3)
     h_out = h_cache = None
@@ -156,14 +156,18 @@ class CaptioningRNN(object):
     
     #backward pass
     # (b_4)
-    temporal_dx, self.grads['W_vocab'], self.grads['b_vocab'] = temporal_affine_backward(soft_grads, temporal_cache)
+    temporal_dx, grads['W_vocab'], grads['b_vocab'] = temporal_affine_backward(soft_grads, temporal_cache)
     
     # (b_3)
-    rnn_dx, rnn_dh0, self.grads['Wx'], self.grads['Wh'], self.grads['b'] = rnn_backward(temporal_dx, h_cache)
+    rnn_dx, rnn_dh0, grads['Wx'], grads['Wh'], grads['b'] = rnn_backward(temporal_dx, h_cache)
+    
+    # (b_2)
+    grads['W_embed'] = word_embedding_backward(rnn_dx, captions_in_cache)
     
     # (b_1)
-    
-    
+    proj_dfeatures = np.dot(rnn_dh0, W_proj.T)
+    grads['W_proj'] = np.dot(rnn_dh0.T, features).T
+    grads['b_proj'] = np.sum(rnn_dh0,axis=0)
     
     loss = soft_loss
     # grads = soft_grads
