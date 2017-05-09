@@ -150,6 +150,8 @@ class CaptioningRNN(object):
     h_out = h_cache = None
     if(self.cell_type == "rnn"):
         h_out, h_cache = rnn_forward(captions_in_embedded, f_proj, Wx, Wh, b)
+    elif(self.cell_type == "lstm"):
+        h_out, h_cache = lstm_forward(captions_in_embedded, f_proj, Wx, Wh, b)
     
     # (4)
     temporal_out, temporal_cache = temporal_affine_forward(h_out,W_vocab,b_vocab)
@@ -162,8 +164,11 @@ class CaptioningRNN(object):
     temporal_dx, grads['W_vocab'], grads['b_vocab'] = temporal_affine_backward(soft_grads, temporal_cache)
     
     # (b_3)
-    rnn_dx, rnn_dh0, grads['Wx'], grads['Wh'], grads['b'] = rnn_backward(temporal_dx, h_cache)
-    
+    if(self.cell_type == "rnn"):
+        rnn_dx, rnn_dh0, grads['Wx'], grads['Wh'], grads['b'] = rnn_backward(temporal_dx, h_cache)
+    elif(self.cell_type == "lstm"):
+        rnn_dx, rnn_dh0, grads['Wx'], grads['Wh'], grads['b'] = lstm_backward(temporal_dx, h_cache)
+        
     # (b_2)
     grads['W_embed'] = word_embedding_backward(rnn_dx, captions_in_cache)
     
@@ -242,9 +247,15 @@ class CaptioningRNN(object):
     # image feature projection
     f_proj = np.dot(features,W_proj) + b_proj #(N,H)
     
+    next_c = np.zeros_like(f_proj)
+    
     for step in range(max_length):
         # one set rnn forward
-        next_h, cache = rnn_step_forward(word_vectors, f_proj, Wx, Wh, b)
+        if(self.cell_type == "rnn"):
+            next_h, cache = rnn_step_forward(word_vectors, f_proj, Wx, Wh, b)
+        elif(self.cell_type == "lstm"):
+            next_h, next_c, cache = lstm_step_forward(word_vectors, f_proj, next_c, Wx, Wh, b)
+            
         f_proj = next_h
         
         # temperal forward
